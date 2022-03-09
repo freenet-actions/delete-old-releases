@@ -1,0 +1,69 @@
+name: Test and publish
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+concurrency: yes
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up node 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Ensure that only production dependencies have been commited
+        run: |
+          set -euo pipefail
+          npm ci --production
+          if [ ! git diff --quiet ]; then
+            echo >&2 'node_modules contains dev dependencies. Please run npm ci --production and commit the node_modules directory.'
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Fetch major version
+        id: version
+        run: echo "::set-output name=majorMinor::$(jq '.version' package.json)
+
+      - name: Tag release
+        uses: actions/github-script@v6.0.0
+        with:
+          script: |
+            const majorMinorVersion = '${{ steps.version.outputs.majorMinor }}';
+            const refs = await github.rest.git.listMatchingRefs({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'tags/v' + majorMinorVersion,
+              per_page: 100
+            });
+            // If we ever reach more than 100 releases for a major version, we will have to add pagination.
+            
+            let newVersion = 'v' + majorMinorVersion;
+            if (refs.length === 0) {
+              // Create initial tag
+              newVersion += '.0';
+            } else {
+              // Fetch last version and increment
+              const currentVersion = refs[refs.length() - 1];
+              const patchVersion = Number(currentVersion.split('.')[2]);
+              newVersion += (patchVersion + 1);
+            }
+            
+            await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/' + newVersion,
+              sha: context.sha
+            });
+

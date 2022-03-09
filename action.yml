@@ -1,0 +1,20 @@
+name: Clear old releases
+description: Clear old GitHub releases
+inputs:
+  prefix:
+    description: Delete all releases matching this prefix.
+    required: false
+  regex:
+    description: Delete all releases matching the regular expression.
+    required: false
+  max-age:
+    description: How old a release is allowed to be before it is deleted.
+    required: true
+    default: 'P1W'
+  delete-tags:
+    description: Delete the tag the release was created from.
+    required: false
+    default: 'false'
+runs:
+  using: node16
+  main: index.js
