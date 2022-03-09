@@ -34,7 +34,7 @@ jobs:
 
       - name: Fetch major version
         id: version
-        run: echo "::set-output name=majorMinor::$(jq '.version' package.json)
+        run: echo "::set-output name=majorMinor::$(jq '.version' package.json)"
 
       - name: Tag release
         uses: actions/github-script@v6.0.0
