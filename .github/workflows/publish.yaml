@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
           npm ci --production
           if ! git diff --quiet; then
-            echo >&2 'node_modules contains dev dependencies. Please run npm ci --production and commit the node_modules directory.'
+            echo '::error::node_modules contains dev dependencies. Please run npm ci --production and commit the node_modules directory.'
             exit 1
           fi
 
