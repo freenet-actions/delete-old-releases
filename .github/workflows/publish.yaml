@@ -41,21 +41,22 @@ jobs:
         with:
           script: |
             const majorMinorVersion = '${{ steps.version.outputs.majorMinor }}';
-            const refs = await github.rest.git.listMatchingRefs({
+            const response = await github.rest.git.listMatchingRefs({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'tags/v' + majorMinorVersion,
               per_page: 100
             });
             // If we ever reach more than 100 releases for a major version, we will have to add pagination.
+            const refs = response.data;
             
-            let newVersion = 'v' + majorMinorVersion;
+            let newVersion = `v${majorMinorVersion}.`;
             if (refs.length === 0) {
               // Create initial tag
-              newVersion += '.0';
+              newVersion += '0';
             } else {
               // Fetch last version and increment
-              const currentVersion = refs[refs.length() - 1];
+              const currentVersion = refs[refs.length - 1].ref;
               const patchVersion = Number(currentVersion.split('.')[2]);
               newVersion += (patchVersion + 1);
             }
