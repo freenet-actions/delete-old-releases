@@ -1,1 +1,3 @@
-await require('./index').doTheThing();
+(async () => {
+  await require('./index').doTheThing();
+})();
