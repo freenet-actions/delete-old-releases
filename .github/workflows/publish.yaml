@@ -21,9 +21,9 @@ jobs:
         run: |
           set -euo pipefail
           npm ci --production
-          if ! git diff --quiet; then
+          if ! git diff --quiet node_modules/.package-lock.json; then
             echo "Found dev dependencies:"
-            git diff
+            git diff --name-only
             echo '::error::node_modules contains dev dependencies. Please run npm ci --production and commit the node_modules directory.'
             exit 1
           fi
