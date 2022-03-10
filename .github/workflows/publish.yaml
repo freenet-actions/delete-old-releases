@@ -43,6 +43,7 @@ jobs:
         with:
           script: |
             const majorMinorVersion = '${{ steps.version.outputs.majorMinor }}';
+            const majorVersion = 'v' + majorMinorVersion.split('.')[0];
             const response = await github.rest.git.listMatchingRefs({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -53,14 +54,17 @@ jobs:
             const refs = response.data;
             
             let newVersion = `v${majorMinorVersion}.`;
+            let updateMajorTag;
             if (refs.length === 0) {
               // Create initial tag
               newVersion += '0';
+              updateMajorTag = false;
             } else {
               // Fetch last version and increment
               const currentVersion = refs[refs.length - 1].ref;
               const patchVersion = Number(currentVersion.split('.')[2]);
               newVersion += (patchVersion + 1);
+              updateMajorTag = true;
             }
             
             await github.rest.git.createRef({
@@ -69,4 +73,20 @@ jobs:
               ref: 'refs/tags/' + newVersion,
               sha: context.sha
             });
-
+            
+            if (updateMajorTag) {
+              await github.rest.git.updateRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/' + majorVersion,
+                sha: context.sha,
+                force: true
+              });
+            } else {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/' + majorVersion,
+                sha: context.sha
+              });
+            }
