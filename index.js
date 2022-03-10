@@ -91,13 +91,14 @@ module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
   do {
     // Pages in GitHub API start at 1
     releaseListOptions.page++;
-    const releases = await octokit.rest.repos.listReleases(releaseListOptions);
+    const response = await octokit.rest.repos.listReleases(releaseListOptions);
+    const releases = response.data;
     for(const release of releases) {
       const releaseId = release.id;
       const releaseName = release.name;
       const releaseDate = release.published_at || release.created_at;
 
-      if (!release.draft && inputs.dateCutoff.isAfter(releaseDate) && inputs.checkReleaseName(releaseName)) {
+      if (!release.draft && inputs.checkReleaseName(releaseName) && inputs.dateCutoff.isAfter(releaseDate)) {
         releasesToDelete.push({
           id: releaseId,
           name: releaseName,

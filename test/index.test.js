@@ -133,7 +133,7 @@ describe('Tests', () => {
       const inputs = {owner: 'tester', repo: 'testing', dateCutoff: momentStub(), checkReleaseName: () => true};
       const listReleasesStub = sinon.stub();
       const octokit = {rest: {repos: {listReleases: listReleasesStub}}}
-      listReleasesStub.returns([]);
+      listReleasesStub.returns({data: []});
 
       await index.fetchAndFilterReleases(octokit, inputs);
 
@@ -172,7 +172,7 @@ describe('Tests', () => {
         });
       }
       for(let i = 0; i < 3; i++) {
-        listReleasesStub.withArgs(sinon.match({page: i + 1})).returns(listReleasesResults[i]);
+        listReleasesStub.withArgs(sinon.match({page: i + 1})).returns({data: listReleasesResults[i]});
       }
 
       const result = await index.fetchAndFilterReleases(octokit, inputs);
@@ -226,5 +226,35 @@ describe('Tests', () => {
       assert.ok(deleteRefStub.firstCall.calledWith({owner: 'tester', repo: 'testing', ref: 'tags/develop-1'}));
       assert.ok(deleteRefStub.secondCall.calledWith({owner: 'tester', repo: 'testing', ref: 'tags/develop-2'}));
     });
+  });
+
+  it('should not keep old releases if there is a recent release for the group', async function() {
+    coreStub.getInput.withArgs('regex').returns('^(?<group>.*)-\\d+$');
+    coreStub.getInput.withArgs('max-age').returns('P1W');
+    coreStub.getInput.withArgs('keep-latest-releases').returns('true');
+    const listReleasesStub = sinon.stub();
+    const octokit = {rest: {repos: {listReleases: listReleasesStub}}}
+    listReleasesStub.returns({
+      data: [
+        {
+          id: 2,
+          name: 'develop-2',
+          draft: false,
+          published_at: '2022-02-25T00:00:00Z'
+        },
+        {
+          id: 1,
+          name: 'develop-1',
+          draft: false,
+          published_at: '2022-01-23T00:00:00Z'
+        }
+      ]
+    });
+
+    const inputs = index.parseInputs();
+    const result = await index.fetchAndFilterReleases(octokit, inputs);
+
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(1, result[0].id);
   });
 });
