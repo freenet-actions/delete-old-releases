@@ -19,6 +19,10 @@ inputs:
     description: Keep the latest release per group. The group is specified by a named capturing group "group" in the regex input.
     required: false
     default: 'false'
+  dry-run:
+    description: Do not delete any releases, only log their names.
+    required: false
+    default: 'false'
 runs:
   using: node16
   main: index.js

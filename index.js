@@ -5,7 +5,7 @@ const moment = require('moment');
 /**
  * Parse the action inputs and the github context to provide a convenient configuration and release-checking object.
  *
- * @return {{owner: string, repo: string, deleteTags: boolean, checkReleaseName: (function(string)), dateCutoff: moment.Moment}}
+ * @return {{owner: string, repo: string, deleteTags: boolean, dryRun: boolean, checkReleaseName: (function(string)), dateCutoff: moment.Moment}}
  */
 module.exports.parseInputs = () => {
   const prefix = core.getInput('prefix');
@@ -13,6 +13,7 @@ module.exports.parseInputs = () => {
   const maxAge = core.getInput('max-age');
   const deleteTags = core.getInput('delete-tags') === 'true';
   const keepLatestReleases = core.getInput('keep-latest-releases') === 'true';
+  const dryRun = core.getInput('dry-run') === 'true';
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
 
@@ -73,6 +74,7 @@ module.exports.parseInputs = () => {
     checkReleaseName,
     dateCutoff,
     deleteTags,
+    dryRun,
     owner,
     repo
   };
@@ -117,18 +119,20 @@ module.exports.deleteReleases = async (octokit, releases, inputs) => {
   core.info('Removing ' + releases.length + ' releases' + (inputs.deleteTags ? ' with tags' : ''));
   for(let releaseInfo of releases) {
     core.info('Removing release ' + releaseInfo.name);
-    await octokit.rest.repos.deleteRelease({
-      owner: inputs.owner,
-      repo: inputs.repo,
-      release_id: releaseInfo.id
-    });
-
-    if (inputs.deleteTags) {
-      await octokit.rest.repos.deleteRef({
+    if (!inputs.dryRun) {
+      await octokit.rest.repos.deleteRelease({
         owner: inputs.owner,
         repo: inputs.repo,
-        ref: 'tags/' + releaseInfo.tag
-      })
+        release_id: releaseInfo.id
+      });
+
+      if (inputs.deleteTags) {
+        await octokit.rest.repos.deleteRef({
+          owner: inputs.owner,
+          repo: inputs.repo,
+          ref: 'tags/' + releaseInfo.tag
+        })
+      }
     }
   }
 }

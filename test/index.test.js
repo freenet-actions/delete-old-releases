@@ -126,6 +126,27 @@ describe('Tests', () => {
       assert.strictEqual(result.owner, 'tester');
       assert.strictEqual(result.repo, 'testing');
     });
+
+    describe('dry-run', () => {
+      it('should accept "true" as true', function() {
+        coreStub.getInput.withArgs('dry-run').returns('true');
+        assert.ok(index.parseInputs().dryRun);
+      });
+
+      it('should interpret "false" as false', function() {
+        coreStub.getInput.withArgs('dry-run').returns('false');
+        assert.ok(!index.parseInputs().dryRun);
+      });
+
+      it('should interpret null as false', function() {
+        coreStub.getInput.withArgs('dry-run').returns(null);
+        assert.ok(!index.parseInputs().dryRun);
+      });
+
+      it('should interpret no value as false', function() {
+        assert.ok(!index.parseInputs().dryRun);
+      });
+    });
   });
 
   describe('fetchAndFilterReleases', function() {
@@ -225,6 +246,22 @@ describe('Tests', () => {
       assert.strictEqual(deleteRefStub.callCount, 2);
       assert.ok(deleteRefStub.firstCall.calledWith({owner: 'tester', repo: 'testing', ref: 'tags/develop-1'}));
       assert.ok(deleteRefStub.secondCall.calledWith({owner: 'tester', repo: 'testing', ref: 'tags/develop-2'}));
+    });
+
+    it('should not delete releases or tags when dry-run is enabled', async function() {
+      const inputs = {owner: 'tester', repo: 'testing', deleteTags: true, dryRun: true};
+      const deleteReleaseStub = sinon.stub();
+      const deleteRefStub = sinon.stub();
+      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub, deleteRef: deleteRefStub}}}
+      const releases = [
+        {id: 1, tag: 'develop-1'},
+        {id: 2, tag: 'develop-2'}
+      ];
+
+      await index.deleteReleases(octokit, releases, inputs);
+
+      assert.ok(deleteReleaseStub.notCalled);
+      assert.ok(deleteRefStub.notCalled);
     });
   });
 

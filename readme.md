@@ -29,6 +29,7 @@ With the `keep-latest-releases` option:
 | `max-age`              | `true`   | `P1W`   | The minimum age a release must have (published date or, if not given, creation date) to be considered for deletion. Format: [ISO 8601 duration](https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm). |
 | `delete-tags`          | `false`  | `false` | Delete the releases' tags?                                                                                                                                                                                                                                   |
 | `keep-latest-releases` | `false`  | `false` | Keep the latest release (per group). If set to `true`, you must provide the regex input with a named capture group "group".                                                                                                                                  |
+| `dry-run`              | `false`  | `false` | Do not remove any releases, only log their names.                                                                                                                                                                                                            |
 
 If you specify neither `prefix` nor `regex`, all releases that match the `max-age` criteria are deleted.
 
