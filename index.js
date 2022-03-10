@@ -88,7 +88,7 @@ module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
     owner: inputs.owner,
     repo: inputs.repo,
     page: 0,
-    pageSize: 100
+    per_page: 100
   }
 
   let hasMore;
@@ -111,7 +111,7 @@ module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
       }
     }
 
-    hasMore = releases.length === releaseListOptions.pageSize;
+    hasMore = releases.length === releaseListOptions.per_page;
   } while(hasMore);
 
   return releasesToDelete;

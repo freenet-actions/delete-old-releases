@@ -160,7 +160,7 @@ describe('Tests', () => {
 
       await index.fetchAndFilterReleases(octokit, inputs);
 
-      assert.ok(listReleasesStub.calledWith(sinon.match({owner: 'tester', repo: 'testing', page: 1, pageSize: 100})));
+      assert.ok(listReleasesStub.calledWith(sinon.match({owner: 'tester', repo: 'testing', page: 1, per_page: 100})));
     });
 
     it('should load and filter the releases', async function() {
