@@ -1,0 +1,1 @@
+await require('./index').doTheThing();

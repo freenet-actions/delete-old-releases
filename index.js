@@ -137,7 +137,7 @@ module.exports.deleteReleases = async (octokit, releases, inputs) => {
   }
 }
 
-module.exports.default = async () => {
+module.exports.doTheThing = async () => {
   try {
     const inputs = this.parseInputs();
     core.info('Searching for releases older than ' + inputs.dateCutoff.toISOString());
