@@ -5,7 +5,7 @@ const moment = require('moment');
 /**
  * Parse the action inputs and the github context to provide a convenient configuration and release-checking object.
  *
- * @return {{owner: string, repo: string, deleteTags: boolean, dryRun: boolean, checkReleaseName: (function(string)), dateCutoff: moment.Moment}}
+ * @return {{owner: string, repo: string, token: string, deleteTags: boolean, dryRun: boolean, checkReleaseName: (function(string)), dateCutoff: moment.Moment}}
  */
 module.exports.parseInputs = () => {
   const prefix = core.getInput('prefix');
@@ -14,6 +14,7 @@ module.exports.parseInputs = () => {
   const deleteTags = core.getInput('delete-tags') === 'true';
   const keepLatestReleases = core.getInput('keep-latest-releases') === 'true';
   const dryRun = core.getInput('dry-run') === 'true';
+  const token = core.getInput('token');
   const owner = github.context.repo.owner;
   const repo = github.context.repo.repo;
 
@@ -75,6 +76,7 @@ module.exports.parseInputs = () => {
     dateCutoff,
     deleteTags,
     dryRun,
+    token,
     owner,
     repo
   };
@@ -142,7 +144,7 @@ module.exports.doTheThing = async () => {
     const inputs = this.parseInputs();
     core.info('Searching for releases older than ' + inputs.dateCutoff.toISOString());
 
-    const octokit = github.getOctokit();
+    const octokit = github.getOctokit(inputs.token);
     const releasesToDelete = await this.fetchAndFilterReleases(octokit, inputs);
 
     await this.deleteReleases(octokit, releasesToDelete, inputs);

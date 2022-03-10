@@ -9,6 +9,7 @@ This action searches for GitHub releases matching a specific prefix or regex and
   with:
     prefix: 'develop-'  # Delete all releases starting with "develop-".
     max-age: 'P1W'      # Delete all releases older than one week.
+    token: '${{ github.token }}'
 ```
 
 With the `keep-latest-releases` option:
@@ -18,12 +19,14 @@ With the `keep-latest-releases` option:
     regex: '^(?<group>.*)-\d$'  # Delete any and all releases. Capture part of the release name for the keep-latest-releases option.
     max-age: 'P1W'              # Delete all releases older than one week.
     keep-latest-releases: true   # Keep the latest release per group (e.g. develop-1, develop-2, etc.).
+    token: '${{ github.token }}'
 ```
 
 ### Inputs
 
 | Name                   | Required | Default | Description                                                                                                                                                                                                                                                  |
 |------------------------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `token`                | `true`   | None    | The GitHub token.                                                                                                                                                                                                                                            |
 | `prefix`               | `false`  | None    | If given, release names must match the given prefix to be considered for deletion.                                                                                                                                                                           |
 | `regex`                | `false`  | None    | If given, release names must match the given regex to be considered for deletion.                                                                                                                                                                            |
 | `max-age`              | `true`   | `P1W`   | The minimum age a release must have (published date or, if not given, creation date) to be considered for deletion. Format: [ISO 8601 duration](https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm). |

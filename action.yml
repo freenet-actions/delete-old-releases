@@ -1,6 +1,9 @@
 name: Clear old releases
 description: Clear old GitHub releases
 inputs:
+  token:
+    description: The GitHub token.
+    required: true
   prefix:
     description: Delete all releases matching this prefix.
     required: false

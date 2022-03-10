@@ -121,10 +121,12 @@ describe('Tests', () => {
       });
     });
 
-    it('should export owner and repo as-is', function() {
+    it('should export owner, repo and token as-is', function() {
+      coreStub.getInput.withArgs('token').returns('myToken');
       const result = index.parseInputs();
       assert.strictEqual(result.owner, 'tester');
       assert.strictEqual(result.repo, 'testing');
+      assert.strictEqual(result.token, 'myToken');
     });
 
     describe('dry-run', () => {
