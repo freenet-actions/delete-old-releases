@@ -118,7 +118,7 @@ module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
 }
 
 module.exports.deleteReleases = async (octokit, releases, inputs) => {
-  core.info('Removing ' + releases.length + ' releases' + (inputs.deleteTags ? ' with tags' : ''));
+  core.info('Removing ' + releases.length + ' releases' + (inputs.deleteTags ? ' with tags' : '') + (inputs.dryRun ? ' (but not actually)' : ''));
   for(let releaseInfo of releases) {
     core.info('Removing release ' + releaseInfo.name);
     if (!inputs.dryRun) {
