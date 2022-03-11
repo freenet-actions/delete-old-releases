@@ -5,7 +5,7 @@ This action searches for GitHub releases matching a specific prefix or regex and
 ## Usage
 
 ```yaml
-- uses: md-actions/delete-old-releases@v1
+- uses: freenet-actions/delete-old-releases@v1
   with:
     prefix: 'develop-'  # Delete all releases starting with "develop-".
     max-age: 'P1W'      # Delete all releases older than one week.
@@ -14,7 +14,7 @@ This action searches for GitHub releases matching a specific prefix or regex and
 
 With the `keep-latest-releases` option:
 ```yaml
-- uses: md-actions/delete-old-releases@v1
+- uses: freenet-actions/delete-old-releases@v1
   with:
     regex: '^(?<group>.*)-\d$'  # Delete any and all releases. Capture part of the release name for the keep-latest-releases option.
     max-age: 'P1W'              # Delete all releases older than one week.
