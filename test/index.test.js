@@ -21,7 +21,7 @@ describe('Tests', () => {
   });
 
   describe('parseInputs', () => {
-    describe('prefix and regex', function() {
+    describe('prefix and regex', () => {
       it('should allow all releases when neither prefix nor regex is given', () => {
         const result = index.parseInputs();
         assert.ok(result.checkReleaseName('develop-1'));
@@ -60,28 +60,28 @@ describe('Tests', () => {
     });
 
     describe('delete-tags', () => {
-      it('should accept "true" as true', function() {
+      it('should accept "true" as true', () => {
         coreStub.getInput.withArgs('delete-tags').returns('true');
         assert.ok(index.parseInputs().deleteTags);
       });
 
-      it('should interpret "false" as false', function() {
+      it('should interpret "false" as false', () => {
         coreStub.getInput.withArgs('delete-tags').returns('false');
         assert.ok(!index.parseInputs().deleteTags);
       });
 
-      it('should interpret null as false', function() {
+      it('should interpret null as false', () => {
         coreStub.getInput.withArgs('delete-tags').returns(null);
         assert.ok(!index.parseInputs().deleteTags);
       });
 
-      it('should interpret no value as false', function() {
+      it('should interpret no value as false', () => {
         assert.ok(!index.parseInputs().deleteTags);
       });
     });
 
     describe('keep-latest-releases', () => {
-      it('should check that regex is set when set to "true"', function() {
+      it('should check that regex is set when set to "true"', () => {
         coreStub.getInput.withArgs('keep-latest-releases').returns('true');
         let exceptionThrown = false;
         try {
@@ -92,7 +92,7 @@ describe('Tests', () => {
         assert.ok(exceptionThrown, 'Exception was thrown');
       });
 
-      it('should check that regex contains the capturing group when set to "true"', function() {
+      it('should check that regex contains the capturing group when set to "true"', () => {
         coreStub.getInput.withArgs('regex').returns('.*-\\d+$');
         coreStub.getInput.withArgs('keep-latest-releases').returns('true');
         let exceptionThrown = false;
@@ -104,7 +104,7 @@ describe('Tests', () => {
         assert.ok(exceptionThrown, 'Exception was thrown');
       });
 
-      it('should check the release group when set to "true"', function() {
+      it('should check the release group when set to "true"', () => {
         coreStub.getInput.withArgs('regex').returns('^(?<group>.*)-\\d+$');
         coreStub.getInput.withArgs('keep-latest-releases').returns('true');
         const result = index.parseInputs();
@@ -112,7 +112,7 @@ describe('Tests', () => {
         assert.ok(result.checkReleaseName('develop-1'));
       });
 
-      it('should ignore the release group when set to "false"', function() {
+      it('should ignore the release group when set to "false"', () => {
         coreStub.getInput.withArgs('prefix').returns('develop-');
         coreStub.getInput.withArgs('keep-latest-releases').returns('false');
         const result = index.parseInputs();
@@ -121,7 +121,7 @@ describe('Tests', () => {
       });
     });
 
-    it('should export owner, repo and token as-is', function() {
+    it('should export owner, repo and token as-is', () => {
       coreStub.getInput.withArgs('token').returns('myToken');
       const result = index.parseInputs();
       assert.strictEqual(result.owner, 'tester');
@@ -130,29 +130,29 @@ describe('Tests', () => {
     });
 
     describe('dry-run', () => {
-      it('should accept "true" as true', function() {
+      it('should accept "true" as true', () => {
         coreStub.getInput.withArgs('dry-run').returns('true');
         assert.ok(index.parseInputs().dryRun);
       });
 
-      it('should interpret "false" as false', function() {
+      it('should interpret "false" as false', () => {
         coreStub.getInput.withArgs('dry-run').returns('false');
         assert.ok(!index.parseInputs().dryRun);
       });
 
-      it('should interpret null as false', function() {
+      it('should interpret null as false', () => {
         coreStub.getInput.withArgs('dry-run').returns(null);
         assert.ok(!index.parseInputs().dryRun);
       });
 
-      it('should interpret no value as false', function() {
+      it('should interpret no value as false', () => {
         assert.ok(!index.parseInputs().dryRun);
       });
     });
   });
 
-  describe('fetchAndFilterReleases', function() {
-    it('should pass the inputs to the listReleases call', async function() {
+  describe('fetchAndFilterReleases', () => {
+    it('should pass the inputs to the listReleases call', async () => {
       const inputs = {owner: 'tester', repo: 'testing', dateCutoff: momentStub(), checkReleaseName: () => true};
       const listReleasesStub = sinon.stub();
       const octokit = {rest: {repos: {listReleases: listReleasesStub}}}
@@ -163,7 +163,7 @@ describe('Tests', () => {
       assert.ok(listReleasesStub.calledWith(sinon.match({owner: 'tester', repo: 'testing', page: 1, per_page: 100})));
     });
 
-    it('should load and filter the releases', async function() {
+    it('should load and filter the releases', async () => {
       const inputs = {owner: 'tester', repo: 'testing', dateCutoff: momentStub(), checkReleaseName: () => true};
       const listReleasesStub = sinon.stub();
       const octokit = {rest: {repos: {listReleases: listReleasesStub}}}
@@ -180,7 +180,7 @@ describe('Tests', () => {
       assert.strictEqual(result[1].tag, 'release-4');
     });
 
-    it('should use pagination to fetch releases', async function() {
+    it('should use pagination to fetch releases', async () => {
       const inputs = {owner: 'tester', repo: 'testing', dateCutoff: momentStub(), checkReleaseName: () => true};
       const listReleasesStub = sinon.stub();
       const octokit = {rest: {repos: {listReleases: listReleasesStub}}};
@@ -211,12 +211,12 @@ describe('Tests', () => {
     });
   });
 
-  describe('deleteReleases', function() {
-    it('should delete only the releases when deleteTags is false', async function() {
+  describe('deleteReleases', () => {
+    it('should delete only the releases when deleteTags is false', async () => {
       const inputs = {owner: 'tester', repo: 'testing', deleteTags: false};
       const deleteReleaseStub = sinon.stub();
       const deleteRefStub = sinon.stub();
-      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub, deleteRef: deleteRefStub}}}
+      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub}, git: {deleteRef: deleteRefStub}}}
       const releases = [
         {id: 1},
         {id: 2}
@@ -230,11 +230,11 @@ describe('Tests', () => {
       assert.ok(deleteRefStub.notCalled);
     });
 
-    it('should delete releases and tags when deleteTags is true', async function() {
+    it('should delete releases and tags when deleteTags is true', async () => {
       const inputs = {owner: 'tester', repo: 'testing', deleteTags: true};
       const deleteReleaseStub = sinon.stub();
       const deleteRefStub = sinon.stub();
-      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub, deleteRef: deleteRefStub}}}
+      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub}, git: {deleteRef: deleteRefStub}}}
       const releases = [
         {id: 1, tag: 'develop-1'},
         {id: 2, tag: 'develop-2'}
@@ -250,11 +250,11 @@ describe('Tests', () => {
       assert.ok(deleteRefStub.secondCall.calledWith({owner: 'tester', repo: 'testing', ref: 'tags/develop-2'}));
     });
 
-    it('should not delete releases or tags when dry-run is enabled', async function() {
+    it('should not delete releases or tags when dry-run is enabled', async () => {
       const inputs = {owner: 'tester', repo: 'testing', deleteTags: true, dryRun: true};
       const deleteReleaseStub = sinon.stub();
       const deleteRefStub = sinon.stub();
-      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub, deleteRef: deleteRefStub}}}
+      const octokit = {rest: {repos: {deleteRelease: deleteReleaseStub}, git: {deleteRef: deleteRefStub}}}
       const releases = [
         {id: 1, tag: 'develop-1'},
         {id: 2, tag: 'develop-2'}
@@ -267,7 +267,7 @@ describe('Tests', () => {
     });
   });
 
-  it('should not keep old releases if there is a recent release for the group', async function() {
+  it('should not keep old releases if there is a recent release for the group', async () => {
     coreStub.getInput.withArgs('regex').returns('^(?<group>.*)-\\d+$');
     coreStub.getInput.withArgs('max-age').returns('P1W');
     coreStub.getInput.withArgs('keep-latest-releases').returns('true');

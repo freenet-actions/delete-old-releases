@@ -3,8 +3,25 @@ const github = require('@actions/github');
 const moment = require('moment');
 
 /**
+ * Parse and validate the action inputs, instantiate the octokit client, fetch the old releases and delete them. Fail the action on error.
+ * @return {Promise<void>}
+ */
+module.exports.run = async () => {
+  try {
+    const inputs = this.parseInputs();
+    core.info('Searching for releases older than ' + inputs.dateCutoff.toISOString());
+
+    const octokit = github.getOctokit(inputs.token);
+    const releasesToDelete = await this.fetchAndFilterReleases(octokit, inputs);
+
+    await this.deleteReleases(octokit, releasesToDelete, inputs);
+  } catch(error) {
+    core.setFailed(error.message);
+  }
+}
+
+/**
  * Parse the action inputs and the github context to provide a convenient configuration and release-checking object.
- *
  * @return {{owner: string, repo: string, token: string, deleteTags: boolean, dryRun: boolean, checkReleaseName: (function(string)), dateCutoff: moment.Moment}}
  */
 module.exports.parseInputs = () => {
@@ -30,46 +47,33 @@ module.exports.parseInputs = () => {
 
   const dateCutoff = moment().subtract(maxAge);
 
-  let checkReleaseNameAgainstPrefix;
-  if (prefix) {
-    checkReleaseNameAgainstPrefix = (releaseName) => {
-      return releaseName.startsWith(prefix);
-    };
-  } else {
-    checkReleaseNameAgainstPrefix = () => true;
-  }
-
-  let checkReleaseNameAgainstRegex;
-  let pattern;
-  if (regex) {
-    pattern = new RegExp(regex);
-    checkReleaseNameAgainstRegex = (releaseName) => {
-      return pattern.test(releaseName);
-    };
-  } else {
-    checkReleaseNameAgainstRegex = () => true;
-  }
-
-  let checkReleaseGroups;
-  if (keepLatestReleases) {
-    const foundReleaseGroups = [];
-    checkReleaseGroups = (releaseName) => {
-      const match = releaseName.match(pattern);
-      const releaseGroup = match.groups.group;
-      if (foundReleaseGroups.includes(releaseGroup)) {
-        return true;
-      }
-      foundReleaseGroups.push(releaseGroup);
+  // Create a method to check the release name against prefix, regex and keep-old-release inputs.
+  let pattern = new RegExp(regex);
+  const foundReleaseGroups = [];
+  const checkReleaseName = (releaseName) => {
+    // Check prefix
+    if (prefix && !releaseName.startsWith(prefix)) {
       return false;
     }
-  } else {
-    checkReleaseGroups = () => true;
-  }
 
-  const checkReleaseName = (releaseName) =>
-      checkReleaseNameAgainstPrefix(releaseName) &&
-      checkReleaseNameAgainstRegex(releaseName) &&
-      checkReleaseGroups(releaseName);
+    // Check regex
+    if (regex) {
+      if (!pattern.test(releaseName)) {
+        return false;
+      }
+
+      // Check if we have already found a release of the captured group
+      if (keepLatestReleases) {
+        const releaseGroup = releaseName.match(pattern).groups.group;
+        if (!foundReleaseGroups.includes(releaseGroup)) {
+          foundReleaseGroups.push(releaseGroup);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
 
   return {
     checkReleaseName,
@@ -80,8 +84,15 @@ module.exports.parseInputs = () => {
     owner,
     repo
   };
-};
+}
+;
 
+/**
+ * Fetch the repositories releases using pagination.
+ * @param octokit the authenticated rest client
+ * @param inputs the inputs as created by {@link parseInputs}
+ * @return {Promise<{id, name, tag}[]>} an array of releases that match the inputs and should be deleted.
+ */
 module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
   const releasesToDelete = [];
   const releaseListOptions = {
@@ -102,6 +113,7 @@ module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
       const releaseName = release.name;
       const releaseDate = release.published_at || release.created_at;
 
+      // Draft releases are always ignored
       if (!release.draft && inputs.checkReleaseName(releaseName) && inputs.dateCutoff.isAfter(releaseDate)) {
         releasesToDelete.push({
           id: releaseId,
@@ -117,6 +129,13 @@ module.exports.fetchAndFilterReleases = async (octokit, inputs) => {
   return releasesToDelete;
 }
 
+/**
+ * Delete the releases and, if the delete-tags input is set, the associated tags, unless dry-run is enabled.
+ * @param octokit the authenticated octokit client
+ * @param releases the list of releases to delete as created by {@link fetchAndFilterReleases}
+ * @param inputs the inputs as created by {@link parseInputs}
+ * @return {Promise<void>}
+ */
 module.exports.deleteReleases = async (octokit, releases, inputs) => {
   core.info('Removing ' + releases.length + ' releases' + (inputs.deleteTags ? ' with tags' : '') + (inputs.dryRun ? ' (but not actually)' : ''));
   for(let releaseInfo of releases) {
@@ -129,26 +148,12 @@ module.exports.deleteReleases = async (octokit, releases, inputs) => {
       });
 
       if (inputs.deleteTags) {
-        await octokit.rest.repos.deleteRef({
+        await octokit.rest.git.deleteRef({
           owner: inputs.owner,
           repo: inputs.repo,
           ref: 'tags/' + releaseInfo.tag
         })
       }
     }
-  }
-}
-
-module.exports.doTheThing = async () => {
-  try {
-    const inputs = this.parseInputs();
-    core.info('Searching for releases older than ' + inputs.dateCutoff.toISOString());
-
-    const octokit = github.getOctokit(inputs.token);
-    const releasesToDelete = await this.fetchAndFilterReleases(octokit, inputs);
-
-    await this.deleteReleases(octokit, releasesToDelete, inputs);
-  } catch(error) {
-    core.setFailed(error.message);
   }
 }

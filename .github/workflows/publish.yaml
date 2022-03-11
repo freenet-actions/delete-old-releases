@@ -42,8 +42,10 @@ jobs:
         uses: actions/github-script@v6.0.0
         with:
           script: |
+            // Parse major and minor version from package.json
             const majorMinorVersion = '${{ steps.version.outputs.majorMinor }}';
             const majorVersion = 'v' + majorMinorVersion.split('.')[0];
+            // Fetch latest patch version for the given major and minor version
             const response = await github.rest.git.listMatchingRefs({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -53,10 +55,11 @@ jobs:
             // If we ever reach more than 100 releases for a major version, we will have to add pagination.
             const refs = response.data;
             
+            // Create a new patch version by either incrementing the last patch version or by starting with .0
             let newVersion = `v${majorMinorVersion}.`;
             let updateMajorTag;
             if (refs.length === 0) {
-              // Create initial tag
+              // Create initial version
               newVersion += '0';
               updateMajorTag = false;
             } else {
@@ -67,6 +70,7 @@ jobs:
               updateMajorTag = true;
             }
             
+            // Create the patch tag
             await github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -75,6 +79,7 @@ jobs:
             });
             
             if (updateMajorTag) {
+              // Update the major tag to point to the new commit
               await github.rest.git.updateRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -83,6 +88,7 @@ jobs:
                 force: true
               });
             } else {
+              // Create the major tag
               await github.rest.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
