@@ -21,7 +21,7 @@ module.exports.run = async () => {
 }
 
 /**
- * Parse the action inputs and the github context to provide a convenient configuration and release-checking object.
+ * Parse the action inputs and the GitHub context to provide a convenient configuration and release-checking object.
  * @return {{owner: string, repo: string, token: string, deleteTags: boolean, dryRun: boolean, checkReleaseName: (function(string)), dateCutoff: moment.Moment}}
  */
 module.exports.parseInputs = () => {
