@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+    - '.github/**'
+    - 'README.md'
 concurrency: yes
 jobs:
   job:
@@ -15,7 +18,7 @@ jobs:
           node-version: 16
 
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Ensure that only production dependencies have been commited
         run: |
