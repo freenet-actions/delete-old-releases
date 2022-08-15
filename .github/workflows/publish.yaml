@@ -44,7 +44,7 @@ jobs:
         run: echo "::set-output name=majorMinor::$(jq --raw-output '.version' package.json)"
 
       - name: Tag release
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.1.1
         with:
           script: |
             // Parse major and minor version from package.json
