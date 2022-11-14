@@ -41,4 +41,4 @@ Draft releases are ignored: They are neither deleted nor considered for the `kee
 
 ## Development
 
-When making changes, make sure you run `npm ci --production` before commiting your changes. The production dependencies need to be commited for the action to be called, but the dev dependencies do not.
+When making changes, make sure you run `npm ci --omit=dev` before commiting your changes. The production dependencies need to be commited for the action to be called, but the dev dependencies do not.
