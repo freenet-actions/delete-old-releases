@@ -1,6 +1,7 @@
 name: Test and publish
 on:
   workflow_dispatch:
+  workflow_call:
   push:
     branches:
       - main
@@ -9,15 +10,15 @@ on:
     - 'README.md'
     - 'package*.json'
 
-concurrency: yes
+concurrency: publish
 jobs:
   job:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up node 16
+      - name: setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version-file: .nvmrc
 
       - name: Checkout source code
         uses: actions/checkout@v3

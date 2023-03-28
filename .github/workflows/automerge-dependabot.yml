@@ -1,0 +1,66 @@
+name: Dependabot auto-merge
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Fetch dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout
+        id: checkout
+        if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        uses: actions/checkout@v3
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: setup node
+        id: node-setup
+        if: steps.checkout.conclusion == 'success'
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+
+      - name: Update dependencies
+        id: update
+        if: steps.node-setup.conclusion == 'success'
+        run: |
+          set -euo pipefail
+          
+          git config user.email "Sebastian.Goral@freenet.ag"
+          git config user.name "Automatic dependency updates"
+          
+          git cherry-pick origin/${{ github.head_ref }}
+          npm ci --omit=dev
+          
+          git add node_modules
+          git commit --amend --no-edit
+          git push
+
+      - name: Enable merge job
+        id: enable-merge
+        if: steps.update.conclusion == 'success'
+        run: echo "enable=true" >> $GITHUB_OUTPUT
+    outputs:
+      run_merge: ${{ steps.enable-merge.outputs.enable }}
+
+  publish:
+    needs: [merge]
+    if: needs.merge.outputs.run_merge == 'true'
+    uses: ./.github/workflows/publish.yaml
