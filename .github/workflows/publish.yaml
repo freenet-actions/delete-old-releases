@@ -15,13 +15,13 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
       - name: setup node
         uses: actions/setup-node@v3
         with:
           node-version-file: .nvmrc
-
-      - name: Checkout source code
-        uses: actions/checkout@v3
 
       - name: Ensure that only production dependencies have been commited
         run: |
