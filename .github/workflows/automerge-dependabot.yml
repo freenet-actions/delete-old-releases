@@ -27,7 +27,7 @@ jobs:
         if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
         uses: actions/checkout@v3
         with:
-          ref: master
+          ref: main
           fetch-depth: 0
 
       - name: setup node
