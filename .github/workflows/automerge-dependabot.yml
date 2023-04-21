@@ -4,17 +4,16 @@ on:
     types:
       - opened
       - reopened
-      - edited
 
 permissions:
   contents: write
   pull-requests: write
-  actions: write
 
 jobs:
   merge:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    concurrency: dependabot-automerge
+    if: github.actor == 'dependabot[bot]'
     steps:
       - name: Fetch dependabot metadata
         id: metadata
@@ -27,7 +26,7 @@ jobs:
         if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
         uses: actions/checkout@v3
         with:
-          ref: main
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: setup node
@@ -46,21 +45,19 @@ jobs:
           git config user.email "Sebastian.Goral@freenet.ag"
           git config user.name "Automatic dependency updates"
           
-          git cherry-pick origin/${{ github.head_ref }}
           npm ci --omit=dev
           
           git add node_modules
           git commit --amend --no-edit
-          git push
+          git push --force
 
-      - name: Enable merge job
-        id: enable-merge
+      - name: Wait for pull request to update
+        id: wait
         if: steps.update.conclusion == 'success'
-        run: echo "enable=true" >> $GITHUB_OUTPUT
-    outputs:
-      run_merge: ${{ steps.enable-merge.outputs.enable }}
+        run: sleep 5
 
-  publish:
-    needs: [merge]
-    if: needs.merge.outputs.run_merge == 'true'
-    uses: ./.github/workflows/publish.yaml
+      - name: Merge
+        if: steps.wait.conclusion == 'success'
+        run: gh pr merge '${{ github.event.pull_request.number }}' --squash
+        env:
+          GH_TOKEN: ${{ github.token }}
