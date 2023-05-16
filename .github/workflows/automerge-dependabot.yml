@@ -4,11 +4,10 @@ on:
     types:
       - opened
       - reopened
-
 permissions:
+  actions: write
   contents: write
   pull-requests: write
-
 jobs:
   merge:
     runs-on: ubuntu-latest
@@ -28,6 +27,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: setup node
         id: node-setup
@@ -57,7 +57,16 @@ jobs:
         run: sleep 5
 
       - name: Merge
+        id: merge
         if: steps.wait.conclusion == 'success'
         run: gh pr merge '${{ github.event.pull_request.number }}' --squash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pushes by GitHub actions don't trigger workflows, so we need to trigger the publish workflow manually
+      - name: Trigger publish
+        if: steps.merge.conclusion == 'success'
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          gh workflow run publish.yaml --ref master
