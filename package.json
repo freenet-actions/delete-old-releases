@@ -1,6 +1,6 @@
 {
   "name": "clear-old-releases",
-  "version": "1.0",
+  "version": "2.0",
   "description": "Clear old GitHub releases.",
   "main": "index.js",
   "scripts": {
