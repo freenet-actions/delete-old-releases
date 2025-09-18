@@ -1,12 +1,14 @@
 version: 2
 updates:
-  # Enable version updates for npm
   - package-ecosystem: 'npm'
     directory: '/'
+    cooldown:
+      default-days: 7
     schedule:
-      interval: 'daily'
-  # Maintain dependencies for GitHub Actions
+      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
+    cooldown:
+      default-days: 7
     schedule:
-      interval: "daily" 
+      interval: "daily"
