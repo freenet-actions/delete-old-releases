@@ -6,6 +6,10 @@
   "scripts": {
     "test": "mocha"
   },
+  "engines": {
+    "npm": ">=11.12",
+    "node": ">=24.16"
+  },
   "license": "MIT",
   "dependencies": {
     "@actions/core": "1.11.1",
