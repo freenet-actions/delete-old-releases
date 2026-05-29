@@ -5,7 +5,7 @@ This action searches for GitHub releases matching a specific prefix or regex and
 ## Usage
 
 ```yaml
-- uses: freenet-actions/delete-old-releases@v1
+- uses: freenet-actions/delete-old-releases@v3.0.0
   with:
     prefix: 'develop-'  # Delete all releases starting with "develop-".
     max-age: 'P1W'      # Delete all releases older than one week.
@@ -14,7 +14,7 @@ This action searches for GitHub releases matching a specific prefix or regex and
 
 With the `keep-latest-releases` option:
 ```yaml
-- uses: freenet-actions/delete-old-releases@v1
+- uses: freenet-actions/delete-old-releases@v3.0.0
   with:
     regex: '^(?<group>.*)-\d$'  # Delete any and all releases. Capture part of the release name for the keep-latest-releases option.
     max-age: 'P1W'              # Delete all releases older than one week.
@@ -38,10 +38,6 @@ If you specify neither `prefix` nor `regex`, all releases that match the `max-ag
 
 ## Notes
 Draft releases are ignored: They are neither deleted nor considered for the `keep-latest-releases` feature.
-
-## Development
-
-When making changes, make sure you run `npm ci --omit=dev` before commiting your changes. The production dependencies need to be commited for the action to be called, but the dev dependencies do not.
 
 ## Contributors
 

@@ -1,21 +1,21 @@
-name: Clear old releases
-description: Clear old GitHub releases
+name: Delete old releases
+description: Delete old GitHub releases
 inputs:
   token:
-    description: The GitHub token.
+    description: The GitHub token
     required: true
   prefix:
-    description: Delete all releases matching this prefix.
+    description: Delete all releases matching this prefix
     required: false
   regex:
-    description: Delete all releases matching the regular expression.
+    description: Delete all releases matching the regular expression
     required: false
   max-age:
-    description: How old a release is allowed to be before it is deleted.
+    description: How old a release is allowed to be before it is deleted
     required: true
     default: 'P1W'
   delete-tags:
-    description: Delete the tag the release was created from.
+    description: Delete the tag the release was created from
     required: false
     default: 'false'
   keep-latest-releases:
@@ -23,9 +23,9 @@ inputs:
     required: false
     default: 'false'
   dry-run:
-    description: Do not delete any releases, only log their names.
+    description: Do not delete any releases, only log their names
     required: false
     default: 'false'
 runs:
-  using: node20
+  using: node24
   main: run.js
