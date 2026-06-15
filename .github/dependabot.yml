@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     cooldown:
-      default-days: 7
+      default-days: 5
     schedule:
       interval: "daily"
   - package-ecosystem: "github-actions"
